@@ -1,6 +1,7 @@
 // Task Container functionality all 
 const columns = document.querySelectorAll(".task-columns");
 const tasks = document.querySelectorAll(".task");
+const counts = document.querySelectorAll(".task-columns .right");
 
 let dragElement = null;
 
@@ -12,6 +13,18 @@ tasks.forEach(task =>{
         task.remove();
     })
 })
+
+const observer = new MutationObserver(() => {
+    columns.forEach(column => {
+        const colCount = column.querySelector(".task-columns .right");
+        colCount.textContent = column.getElementsByClassName("task").length;
+    });
+});
+
+columns.forEach(column=>{
+    observer.observe(column, { childList: true });
+})
+
 
 function dragEventForColumns(columns) {
     columns.forEach(column => {
