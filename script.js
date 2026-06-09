@@ -44,6 +44,7 @@ function dragEventForColumns(columns) {
             column.appendChild(dragElement);
             dragElement = null;
             column.classList.remove("hover-over");
+            saveTask();
 
         })
 
@@ -101,7 +102,7 @@ addtask.addEventListener("click",()=>{
     div.addEventListener("dragstart",()=>{
         dragElement = div;
     })
-    
+    saveTask();
     
     inp.value = '';
     textarea.value = '';
@@ -109,4 +110,59 @@ addtask.addEventListener("click",()=>{
     
 })
 
+function saveTask(){
+    const data = {};
+    columns.forEach(column=>{
+        const columnId = column.id;
+        data[columnId] = [];
+        column.querySelectorAll('.task').forEach(task=>{
+            data[columnId].push({
+                title: task.querySelector("h2").textContent,
+                desc: task.querySelector("p").textContent                
+            });
+        });
+    });
+    localStorage.setItem("kanban-tasks", JSON.stringify(data));
+}
 
+function loadTask(){
+    const saved = localStorage.getItem("kanban-tasks");
+    if(!saved) return;
+
+    const data = JSON.parse(saved);
+    Object.entries(data).forEach(([columnId, tasks])=>{
+        const column = document.getElementById(columnId);
+        if(!column) return;
+
+        tasks.forEach(({title, desc}) => createTask(title, desc, column));
+    });
+}
+
+
+function createTask(title, desc, targetColumn) {
+    const div = document.createElement("div");
+    const h2 = document.createElement("h2");
+    const p = document.createElement("p");
+    const btn = document.createElement("button");
+
+    div.classList.add("task");
+    div.setAttribute("draggable", "true");
+    h2.textContent = title;
+    p.textContent = desc;
+    btn.innerHTML = '<i class="fa fa-trash"></i> Delete';
+    btn.addEventListener("click", () => {
+        div.remove();
+        saveTask(); // save after delete
+    });
+
+    div.appendChild(h2);
+    div.appendChild(p);
+    div.appendChild(btn);
+    targetColumn.appendChild(div);
+
+    div.addEventListener("dragstart", () => { dragElement = div; });
+    dragEventForColumns(columns);
+    saveTask(); // save after creation
+}
+
+loadTask();
